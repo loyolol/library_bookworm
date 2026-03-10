@@ -4,10 +4,10 @@ session_start();
 
 $message = ''; 
 if (isset($_SESSION['error'])) {
-    $message = '<div style="background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 4px; margin-bottom: 15px;">' . htmlspecialchars($_SESSION['error']) . '</div>';
+    $message = '<div style="background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 4px; margin-bottom: 15px;">' . $_SESSION['error'] . '</div>';
     unset($_SESSION['error']);
 } elseif (isset($_SESSION['success'])) {
-    $message = '<div style="background-color: #d4edda; color: #155724; padding: 10px; border-radius: 4px; margin-bottom: 15px;">' . htmlspecialchars($_SESSION['success']) . '</div>';
+    $message = '<div style="background-color: #d4edda; color: #155724; padding: 10px; border-radius: 4px; margin-bottom: 15px;">' . $_SESSION['success'] . '</div>';
     unset($_SESSION['success']);
 }
 
@@ -38,6 +38,22 @@ $action_url = $protocol . $host . $base_path . '/php/login.php';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Авторизация</title>
     <link rel="stylesheet" href="/css/style.css"> 
+    <style>
+        .error-message {
+            color: #dc3545;
+            font-size: 0.9em;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .form-group input.invalid {
+            border-color: #dc3545;
+        }
+        
+        .form-group input.valid {
+            border-color: #28a745;
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -58,19 +74,26 @@ $action_url = $protocol . $host . $base_path . '/php/login.php';
     
     <div class="form-container"> 
         <div class="form-content-wrapper">
-            <h2>Вход в систему</h2>
+            <h2>Авторизация</h2>
+            
             <?php echo $message; ?>
-            <form action="<?php echo htmlspecialchars($action_url); ?>" method="POST">
+            
+            <form action="<?php echo htmlspecialchars($action_url); ?>" method="POST" id="loginForm">
                 <div class="form-group">
                     <label for="email">Email:</label>
                     <input type="email" id="email" name="email" required>
+                    <div class="error-message" id="emailError"></div>
                 </div>
+                
                 <div class="form-group">
                     <label for="password">Пароль:</label>
                     <input type="password" id="password" name="password" required>
+                    <div class="error-message" id="passwordError"></div>
                 </div>
-                <button type="submit" class="form-submit">Войти</button>
+                
+                <button type="submit" class="form-submit" id="submitBtn">Войти</button>
             </form>
+            
             <div class="link-footer">
                 <p style="margin: 0;">Нет аккаунта? <a href="register.php">Зарегистрироваться</a></p>
             </div>
@@ -80,5 +103,47 @@ $action_url = $protocol . $host . $base_path . '/php/login.php';
     <footer>
         &copy; Книжный червь 2026. Все права защищены.
     </footer>
+
+    <script>
+        // Клиентская валидация
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const emailError = document.getElementById('emailError');
+        const passwordError = document.getElementById('passwordError');
+        
+        // Валидация email
+        emailInput.addEventListener('input', function() {
+            const value = this.value;
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            
+            if (value.length > 0 && !emailRegex.test(value)) {
+                emailError.textContent = 'Введите корректный email';
+                emailError.style.display = 'block';
+                this.classList.add('invalid');
+                this.classList.remove('valid');
+            } else if (value.length === 0) {
+                emailError.style.display = 'none';
+                this.classList.remove('invalid', 'valid');
+            } else {
+                emailError.style.display = 'none';
+                this.classList.remove('invalid');
+                this.classList.add('valid');
+            }
+        });
+        
+        // Валидация пароля
+        passwordInput.addEventListener('input', function() {
+            if (this.value.length === 0) {
+                passwordError.textContent = 'Пароль обязателен';
+                passwordError.style.display = 'block';
+                this.classList.add('invalid');
+                this.classList.remove('valid');
+            } else {
+                passwordError.style.display = 'none';
+                this.classList.remove('invalid');
+                this.classList.add('valid');
+            }
+        });
+    </script>
 </body>
 </html>

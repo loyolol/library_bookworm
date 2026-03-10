@@ -104,7 +104,7 @@ function getStatusInRussian($english_status) {
         </nav>
     </header>
     <div class="container">
-        <h2>Ваши Забронированные Книги</h2>
+        <h2>Мои Забронированные Книги</h2>
         <?php echo $message; ?>
         
         <table>

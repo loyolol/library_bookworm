@@ -26,7 +26,7 @@ if ($is_logged_in) {
         $nav_links['Мои Бронирования'] = 'user_bookings.php';
     }
     
-    // 2. Админ видит УПРАВЛЕНИЕ (Ссылки на manage_books.php и add_book.php в корне)
+    // 2. Админ видит УПРАВЛЕНИЕ 
     if ($user_role == 'admin') {
         $nav_links['Управление Книгами'] = 'manage_books.php'; 
         $nav_links['Добавить Книгу'] = 'add_book.php';
@@ -96,7 +96,13 @@ if ($book_id > 0) {
         
         <?php if ($book): ?>
             <div class="book-card" style="display: block;">
-                <img src="" alt="Обложка книги" style="float: left; margin-right: 30px; width: 200px; height: auto;">
+                <?php 
+                // Определяем путь к обложке
+                $cover = !empty($book['cover_path']) 
+                    ? htmlspecialchars($book['cover_path']) 
+                    : 'https://via.placeholder.com/200x300?text=No+Cover'; 
+                ?>
+                <img src="<?php echo $cover; ?>" alt="Обложка книги" style="float: left; margin-right: 30px; width: 200px; height: auto;">
                 
                 <div>
                     <h3><?php echo htmlspecialchars($book['title']); ?></h3>

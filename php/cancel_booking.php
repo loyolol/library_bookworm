@@ -1,6 +1,6 @@
 <?php
 
-// php/cancel_booking.php
+
 require_once __DIR__ . '/../config.php';
 session_start();
 
@@ -22,7 +22,7 @@ if ($booking_id <= 0) {
 try {
     $pdo->beginTransaction();
 
-    // 1. Находим бронирование, проверяем, что оно принадлежит этому пользователю и активно
+
     $check_sql = "SELECT book_id, status FROM bookings WHERE booking_id = :booking_id AND user_id = :user_id FOR UPDATE";
     $stmt_check = $pdo->prepare($check_sql);
     $stmt_check->execute([':booking_id' => $booking_id, ':user_id' => $user_id]);
@@ -36,12 +36,12 @@ try {
     
     $book_id = $booking['book_id'];
 
-    // 2. Обновляем статус бронирования на 'cancelled'
+
     $cancel_sql = "UPDATE bookings SET status = 'cancelled' WHERE booking_id = :booking_id";
     $stmt_cancel = $pdo->prepare($cancel_sql);
     $stmt_cancel->execute([':booking_id' => $booking_id]);
 
-    // 3. Увеличиваем количество доступных книг (возвращаем книгу в каталог)
+
     $update_sql = "UPDATE books SET quantity_available = quantity_available + 1 WHERE book_id = :book_id";
     $stmt_update = $pdo->prepare($update_sql); 
     $stmt_update->execute([':book_id' => $book_id]);

@@ -67,7 +67,7 @@ header nav a:hover {
 .form-container {
     width: 100%;
     max-width: 450px; 
-    margin: 200px auto; /* Большой отступ сверху */
+    margin: 200px auto; 
     padding: 30px 25px; 
     background-color: #fff;
     border-radius: 8px;
@@ -76,7 +76,7 @@ header nav a:hover {
     
     display: flex;
     flex-direction: column;
-    justify-content: center; /* Вертикальное центрирование содержимого */
+    justify-content: center;
 }
 
 .form-container h2 {
@@ -113,7 +113,7 @@ header nav a:hover {
 }
 
 .form-submit {
-    background-color: #004080; /* СИНИЙ ХЕДЕРА */
+    background-color: #004080; 
     color: white;
     padding: 12px 20px;
     border: none;

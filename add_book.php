@@ -31,7 +31,7 @@ if ($is_logged_in) {
     $nav_links['Регистрация'] = 'register.php';
 }
 
-
+// Обработка POST запроса с файлом
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = trim($_POST['title']);
     $author = trim($_POST['author']);
@@ -40,9 +40,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $genre = trim($_POST['genre']);
     $total_quantity = filter_var($_POST['total_quantity'], FILTER_VALIDATE_INT);
     $description = trim($_POST['description']);
-    $cover_path = trim($_POST['cover_path'] ?? '');
     
-    if (!empty($title) && !empty($author) && $year && $total_quantity >= 0) {
+    // Обработка загруженного файла обложки
+    $cover_path = '';
+    
+    if (isset($_FILES['cover_file']) && $_FILES['cover_file']['error'] == UPLOAD_ERR_OK) {
+        $upload_dir = 'uploads/covers/';
+        
+        // Создаем директорию, если её нет
+        if (!is_dir($upload_dir)) {
+            mkdir($upload_dir, 0777, true);
+        }
+        
+        $file_info = pathinfo($_FILES['cover_file']['name']);
+        $extension = strtolower($file_info['extension']);
+        
+        // Проверяем расширение файла
+        $allowed_extensions = ['jpg', 'jpeg', 'png', 'gif'];
+        if (in_array($extension, $allowed_extensions)) {
+            $new_filename = time() . '_' . uniqid() . '.' . $extension;
+            $upload_path = $upload_dir . $new_filename;
+            
+            if (move_uploaded_file($_FILES['cover_file']['tmp_name'], $upload_path)) {
+                $cover_path = $upload_path;
+            } else {
+                $message = '<div style="background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 4px; margin-bottom: 15px;">Ошибка при загрузке файла.</div>';
+            }
+        } else {
+            $message = '<div style="background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 4px; margin-bottom: 15px;">Разрешены только JPG, PNG и GIF файлы.</div>';
+        }
+    } elseif (!empty($_POST['cover_path'])) {
+        $cover_path = trim($_POST['cover_path']);
+    }
+    
+    if (!empty($title) && !empty($author) && $year && $total_quantity >= 0 && empty($message)) {
         try {
             $sql = "INSERT INTO books (title, author, publication_year, publisher, genre, total_quantity, quantity_available, description, cover_path) 
                     VALUES (:title, :author, :year, :publisher, :genre, :total_qty, :total_qty, :description, :cover_path)";
@@ -65,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } catch (PDOException $e) {
             $message = '<div style="background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 4px; margin-bottom: 15px;">Ошибка базы данных при добавлении: ' . $e->getMessage() . '</div>';
         }
-    } else {
+    } elseif (empty($message)) {
         $message = '<div style="background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 4px; margin-bottom: 15px;">Пожалуйста, заполните все обязательные поля корректно.</div>';
     }
 }
@@ -80,9 +111,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <style>
         .form-row { margin-bottom: 15px; }
         .form-row label { display: block; margin-bottom: 5px; font-weight: bold; }
-        .form-row input[type="text"], .form-row input[type="number"], .form-row textarea { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;}
+        .form-row input[type="text"], .form-row input[type="number"], .form-row textarea, 
+        .form-row input[type="file"] { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;}
         .form-row textarea { resize: vertical; }
         .sidebar-preview { margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee;}
+        .preview-container { display: flex; gap: 20px; align-items: flex-start; }
+        .preview-image { max-width: 150px; height: auto; border: 1px solid #ccc; }
+        .or-divider { margin: 10px 0; text-align: center; font-weight: bold; color: #666; }
     </style>
 </head>
 <body>
@@ -101,7 +136,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <h2>Добавить Новую Книгу</h2>
         <?php echo $message; ?>
 
-        <form method="POST">
+        <form method="POST" enctype="multipart/form-data">
             <div class="form-row">
                 <label for="title">Название:</label>
                 <input type="text" id="title" name="title" required>
@@ -131,14 +166,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <textarea id="description" name="description"></textarea>
             </div>
             
-            <!-- СЕКЦИЯ ДЛЯ ОБЛОЖКИ И ПРЕДПРОСМОТРА -->
+            
             <div class="sidebar-preview">
+                <h3>Обложка книги</h3>
+                
                 <div class="form-row">
-                    <label for="cover_path">Путь к обложке (URL):</label>
-                    <input type="text" id="cover_path" name="cover_path">
+                    <label for="cover_file">Загрузить файл с компьютера:</label>
+                    <input type="file" id="cover_file" name="cover_file" accept="image/jpeg,image/png,image/gif">
                 </div>
+                
+                <div class="or-divider">- ИЛИ -</div>
+                
+                <div class="form-row">
+                    <label for="cover_path">Указать ссылку на обложку (URL):</label>
+                    <input type="text" id="cover_path" name="cover_path" placeholder="https://example.com/cover.jpg">
+                </div>
+                
                 <p>Предварительный просмотр:</p>
-                <img id="coverPreview" src="https://via.placeholder.com/150x200?text=No+Cover" alt="Preview" style="max-width: 150px; height: auto; border: 1px solid #ccc;">
+                <div class="preview-container">
+                    <img id="coverPreview" src="https://via.placeholder.com/150x200?text=No+Cover" alt="Preview" class="preview-image">
+                </div>
+                <p style="font-size: 0.9em; color: #666; margin-top: 5px;">Загрузите файл или укажите URL.</p>
             </div>
             
             <button type="submit" class="btn btn-primary">Добавить Книгу</button>
@@ -148,17 +196,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script>
         // JS для предпросмотра обложки
         const coverInput = document.getElementById('cover_path');
+        const fileInput = document.getElementById('cover_file');
         const preview = document.getElementById('coverPreview');
 
-        function updatePreview() {
-            const path = coverInput.value || 'https://via.placeholder.com/150x200?text=No+Cover';
-            preview.src = path;
+        function updatePreviewFromFile() {
+            if (fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                }
+                reader.readAsDataURL(fileInput.files[0]);
+            }
+        }
+
+        function updatePreviewFromUrl() {
+            if (coverInput.value) {
+                preview.src = coverInput.value;
+            } else if (!fileInput.files || !fileInput.files[0]) {
+                preview.src = 'https://via.placeholder.com/150x200?text=No+Cover';
+            }
+        }
+
+        if (fileInput) {
+            fileInput.addEventListener('change', function() {
+                updatePreviewFromFile();
+                coverInput.value = ''; 
+            });
         }
 
         if (coverInput) {
-            coverInput.addEventListener('input', updatePreview);
-            updatePreview();
+            coverInput.addEventListener('input', function() {
+                if (coverInput.value) {
+                    fileInput.value = ''; 
+                }
+                updatePreviewFromUrl();
+            });
         }
+
+        // Начальный предпросмотр
+        updatePreviewFromUrl();
     </script>
     <footer>
         &copy; Книжный червь 2026. Все права защищены. 

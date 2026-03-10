@@ -89,8 +89,13 @@ try {
         <?php else: ?>
             <?php foreach ($books as $book): ?>
                 <div class="book-card">
-                    <?php $cover = htmlspecialchars($book['cover_path'] ?? 'https://via.placeholder.com/100x150?text=No+Cover'); ?>
-                    <img src="" alt="Обложка книги" style="width: 100px; height: auto;">
+                    <?php 
+                    // Определяем путь к обложке
+                    $cover = !empty($book['cover_path']) 
+                        ? htmlspecialchars($book['cover_path']) 
+                        : 'https://via.placeholder.com/100x150?text=No+Cover'; 
+                    ?>
+                    <img src="<?php echo $cover; ?>" alt="Обложка книги" style="width: 100px; height: auto;">
                     <div class="book-info">
                         <h3><?php echo htmlspecialchars($book['title']); ?></h3>
                         <p><strong>Автор:</strong> <?php echo htmlspecialchars($book['author']); ?></p>
@@ -119,7 +124,6 @@ try {
     </div>
     <script>
         function bookBook(bookId, buttonElement) {
-            // ... JS функция bookBook (оставлена в сокращенном виде) ...
             buttonElement.disabled = true;
             buttonElement.textContent = 'Бронирование...';
             const formData = new FormData();
