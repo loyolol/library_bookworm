@@ -59,7 +59,7 @@ library_bookworm/
 ├── login.php                     # Страница авторизации
 ├── manage_books.php              # Страница управления книгами (админ)
 ├── register.php                  # Страница регистрации
-├── library_db.sql                # Страница регистрации
+├── library_db.sql                # Код для создания бд
 └── user_bookings.php             # Страница бронирований пользователя 
 ```
 
